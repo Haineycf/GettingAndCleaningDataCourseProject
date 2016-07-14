@@ -1,0 +1,60 @@
+
+
+#load 4 files, file1 & file3 are data,file2 & file4 are the individual (i.e. labels foreach row)
+file1 = read.table("./zipFile/test/X_test.txt", header = FALSE)
+file2 = read.table("./zipfile/test/y_test.txt")
+
+file3 = read.table("./zipFile/train/X_train.txt", header = FALSE)
+file4 = read.table("./zipFile/train/y_train.txt")
+
+#add the column headers from file features.txt to file 1 & 3
+column_names = read.table("./zipFile/features.txt")
+CL_name1 = column_names[,2] # row the column list of names i.e column 2
+#CL_name1
+#class(CL_name1)
+colnames(file1) <-CL_name1
+#write.csv(file1,"./ZipFile/file1_names.csv")
+colnames(file3) <-CL_name1
+#write.csv(file3, "./ZipFile/file3_names.csv")
+
+#add the column header to file 2 & 4 "individual
+colnames(file2) <-"individual"
+#head(file2)
+#write.csv(file2,"./ZipFile/file2_names.csv")
+colnames(file4) <-"individual"
+#write.csv(file4, "./zipFile/file4_names.csv")
+
+#add the row titles to file 1 & 3 with the information in file 2 & 4
+mergeData1 <- merge(file2,file1,by="row.names", sort = FALSE)
+#write.csv(mergeData1, "./zipFile/mergedata1.csv")
+mergeData2 <- merge(file4,file3, by="row.names", sort = FALSE)
+#write.csv(mergeData2,"./zipFile/mergeData2.csv")
+
+#merge the test and training sets
+mergeData <- merge(mergeData1, mergeData2,all = TRUE, sort = FALSE)
+write.csv(mergeData,"./zipFile/mergedata.csv")
+
+#make individual names for the larger file
+Ind <- mergeData[,2]
+#write.csv(Ind,"./zipFile/Ind.csv")
+# can I delete this????write.csv(mergeInd,"./zipFile/mergeInd.csv")
+
+#subset columns based on key word mean, i.e. take out all columns containing the word column
+subset1 <- mergeData[,grep("mean",colnames(mergeData))]
+#droplevels.data.frame(subset1)
+#write.csv(subset1, "./zipFile/subset1.csv")
+
+subset2 <- mergeData[,grep("std",colnames(mergeData))]
+#droplevels.data.frame(subset2)
+#write.csv(subset2, "./zipFile/subset2.csv")
+
+#combine the subset and add individual names to them
+mean_std_set <- cbind(Ind,subset1,subset2)
+write.csv(mean_std_set, "./zipFile/Data_set_step4")
+
+
+require(data.table)
+DT <-data.table(mean_std_set)
+#write.csv(DT,"./zipFile/DT.csv")
+Ind_mean <-DT[,lapply(.SD, mean), by = mean_std_set$Ind]
+write.csv(Ind_mean, "./zipFile/Data_set-step4_mean_std.csv") 
